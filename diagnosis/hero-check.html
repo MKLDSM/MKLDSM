@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Hero 재생 진단</title>
+<style>
+  :root{--bg:#fff;--fg:#111;--muted:#666;--ok:#0a7d33;--bad:#c62828;--line:#ddd}
+  @media (prefers-color-scheme:dark){:root{--bg:#111;--fg:#eee;--muted:#999;--line:#333}}
+  body{margin:0;padding:16px;background:var(--bg);color:var(--fg);font:15px/1.6 system-ui,sans-serif}
+  main{max-width:860px;margin:auto}
+  table{width:100%;border-collapse:collapse;margin:12px 0}
+  td{border-bottom:1px solid var(--line);padding:8px 6px;vertical-align:top}
+  td:first-child{width:45%;color:var(--muted)}
+  .ok{color:var(--ok);font-weight:600}.bad{color:var(--bad);font-weight:600}
+  video{width:100%;background:#000;border-radius:8px}
+  .anim{font-size:28px;font-weight:700;animation:up 1.2s ease both infinite alternate}
+  @keyframes up{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
+</style>
+</head>
+<body><main>
+<h1>Hero 영상 / 텍스트 애니메이션 진단</h1>
+<p>문제가 생기는 노트북에서 이 파일을 열고, 아래 결과를 캡처해 주세요.</p>
+
+<h2>1. 테스트 영상 (사이트와 같은 방식: autoplay muted loop playsinline)</h2>
+<video id="v" autoplay muted loop playsinline preload="auto"
+  src="https://raw.githubusercontent.com/mkldsm/mkldsm/main/WellCommHERO-web.mp4"></video>
+
+<h2>2. 테스트 텍스트 애니메이션 (CSS keyframes)</h2>
+<p class="anim">이 글자가 위아래로 움직이면 정상</p>
+
+<h2>3. 결과</h2>
+<table id="t"></table>
+</main>
+<script>
+const t=document.getElementById('t'),v=document.getElementById('v');
+function row(k,val,good){const r=t.insertRow();r.insertCell().textContent=k;const c=r.insertCell();c.textContent=val;if(good!==undefined)c.className=good?'ok':'bad';return c}
+const rm=matchMedia('(prefers-reduced-motion: reduce)').matches;
+row('애니메이션 줄이기(prefers-reduced-motion)',rm?'켜짐 → 사이트 애니메이션/자동재생이 꺼질 수 있음':'꺼짐',!rm);
+row('H.264 MP4 지원',v.canPlayType('video/mp4; codecs="avc1.640028"')||'지원 안 함',!!v.canPlayType('video/mp4; codecs="avc1.640028"'));
+row('저데이터 모드(Save-Data)',navigator.connection&&navigator.connection.saveData?'켜짐':'꺼짐/알 수 없음',!(navigator.connection&&navigator.connection.saveData));
+row('브라우저',navigator.userAgent);
+row('화면',`${screen.width}×${screen.height}, DPR ${devicePixelRatio}`);
+const st=row('영상 자동재생','확인 중…');
+v.addEventListener('playing',()=>{st.textContent='재생됨';st.className='ok'});
+v.addEventListener('error',()=>{st.textContent='로드 오류 (code '+(v.error&&v.error.code)+') – 네트워크/보안 프로그램이 영상 주소를 차단했을 수 있음';st.className='bad'});
+setTimeout(()=>{if(v.paused&&st.className!=='bad'){st.textContent='자동재생 차단됨 (절전 모드/브라우저 설정 의심)';st.className='bad';
+  v.play().catch(e=>{st.textContent+=' · '+e.name})}},3000);
+</script>
+</body></html>
